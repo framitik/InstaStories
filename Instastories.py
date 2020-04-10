@@ -6,14 +6,17 @@ import time
 import datetime
 import base64
 import settings
+import logging
 from random import randint
 
 try:
     from terminaltables import AsciiTable
-    PRINT_TABLE = True
+    logging.info_TABLE = True
 except ImportError as e:
-    PRINT_TABLE = False
+    logging.info_TABLE = False
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='info.log', filemode='a+', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 ################# UTILS FUNCTIONS #########################
 
@@ -31,7 +34,7 @@ def login_and_store_session_id(username, password):
         settings.update("session_id", session_id_string)
         return True
     else:
-        print("You have entered invalid credentials, please retry.")
+        logging.info("You have entered invalid credentials, please retry.")
         return False
 
 def get_cookie(cookie):
@@ -64,7 +67,7 @@ def normalize_extra_ids(ids):
     cached_ids = get_cached_ids()
     for nick in nicknames:
         if nick not in cached_ids:
-            print(f"Finding id for {nick}")
+            logging.info(f"Finding id for {nick}")
             time.sleep(randint(1, 4))  # Random delay to avoid requests spamming
             id_of_nickname = nick_to_id(nick)
             cached_ids[nick] = id_of_nickname
@@ -118,19 +121,19 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
             items = d['items']
             username = items[0]['user']['username']
         else:
-            print("Empty stories for url {}".format(url))
+            logging.info("Empty stories for url {}".format(url))
             continue
 
-        print("{}/{} Username: -| {} |-".format(idx + 1, len(arr_ids), username))
+        logging.info("{}/{} Username: -| {} |-".format(idx + 1, len(arr_ids), username))
         usr_directory = os.path.join(folder_path, username)
 
         #####
 
         if not os.path.exists(usr_directory):
-            print("Creating Directory :{}".format(usr_directory))
+            logging.info("Creating Directory :{}".format(usr_directory))
             os.makedirs(usr_directory)
         else:
-            print("User already EXIST")
+            logging.info("User already EXIST")
 
         new_metadata = False  # Used to update the .txt and .json metadata file only if necessary.
         seen_stories_txt = os.path.join(usr_directory, "saved.txt")
@@ -150,7 +153,7 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
             time_directory = os.path.join(usr_directory, date)
 
             if not os.path.exists(time_directory):
-                print("Creating Directory :{}".format(time_directory))
+                logging.info("Creating Directory :{}".format(time_directory))
                 os.makedirs(time_directory)
 
             """
@@ -166,22 +169,22 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
                     if not os.path.isfile(fn_video):
                         videos = element['video_versions']
                         video_url = videos[0]['url']
-                        print("Video URL: {}".format(video_url))
+                        logging.info("Video URL: {}".format(video_url))
                         base64_media.append(get_media(video_url, fn_video, "video/mp4", username))
                         count_v += 1
                     else:
-                        print("Video media already saved")
+                        logging.info("Video media already saved")
 
                 if element['media_type'] == 1:
                     fn_img = os.path.join(time_directory, str(media_id) + ".jpg")
                     if not os.path.isfile(fn_img):
                         pics = element['image_versions2']['candidates']
                         pic_url = pics[0]['url']
-                        print("Photo URL: {}".format(pic_url))
+                        logging.info("Photo URL: {}".format(pic_url))
                         base64_media.append(get_media(pic_url, fn_img, "img/png", username))
                         count_i += 1
                     else:
-                        print("Video media already saved")
+                        logging.info("Video media already saved")
 
             if mode_flag in ["all", "metadata"]:
                 if media_id not in json_stories_seen:  # Now save the metadata in a json file
@@ -194,7 +197,7 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
                 for id in json_stories_seen:
                     seen.write(f'{id}\n')
                 json_stories_saved = json.dump(json_stories_saved, saved)
-    print("We finished processing {} users, we downloaded {} IMGs and {} VIDEOs".format(len(arr_ids), count_i, count_v))
+    logging.info("We finished processing {} users, we downloaded {} IMGs and {} VIDEOs".format(len(arr_ids), count_i, count_v))
     return count_i, count_v, base64_media
 
 def get_stories_tray(cookie):
@@ -212,7 +215,7 @@ def get_stories_tray(cookie):
 
 def print_ids_table(usr, ids):
     """
-    Print in a nice table the username and the corrisponding id.
+    prints in a nice table the username and the corrisponding id.
     Args:
         usr (List): List of username.
         ids (List): List of ids.
@@ -220,12 +223,12 @@ def print_ids_table(usr, ids):
     table_data = [[x, y] for x, y in zip(usr, ids)]
     table_data = [("Username", "ID")] + table_data
     table = AsciiTable(table_data)
-    print(table.table)
+    logging.info(table.table)
 
 def tray_to_ids(stories):
     """
     Extrapolate ids of instagram user that appear in the stories tray.
-    Nicely print them in a table before returning them.
+    Nicely logging.info them in a table before returning them.
     Args:
         stories (dict): A dict representation of the instagram response.
     Returns:
@@ -238,8 +241,8 @@ def tray_to_ids(stories):
         username = element['user']['username']
         usr.append(username)
 
-    if PRINT_TABLE:  # Toggleable option to print the table
-        print_ids_table(usr, ids)
+    if logging.info_TABLE:  # Toggleable option to logging.info the table
+        logging.info_ids_table(usr, ids)
 
     return ids
 
@@ -254,8 +257,8 @@ def nick_to_id(nickname):
     base_url_info = "https://www.instagram.com/{}/?__a=1"
     r = requests.get(base_url_info.format(nickname))
     d = r.json()
-    print(d["graphql"]["user"]["edge_followed_by"]["count"])
-    print("{} - ID: {}".format(nickname, d["graphql"]["user"]["id"]))
+    logging.info(d["graphql"]["user"]["edge_followed_by"]["count"])
+    logging.info("{} - ID: {}".format(nickname, d["graphql"]["user"]["id"]))
     return d["graphql"]["user"]["id"]
 
 #################### START SCRAPING FUNCTIONS ###################
