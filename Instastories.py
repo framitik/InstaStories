@@ -4,7 +4,6 @@ import urllib.request
 import os
 import time
 import datetime
-import base64
 import settings
 import logging
 from random import randint
@@ -41,12 +40,6 @@ def get_cookie(cookie):
              "user-agent": "Instagram 10.3.2 (iPhone7,2; iPhone OS 9_3_3; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/420+",
              "cache-control": "no-cache"}
     return token
-
-def get_media(url, path, media_type, username):
-    urllib.request.urlretrieve(url, path)
-    with open(path, "rb") as image:
-        base64_media = (base64.b64encode(image.read()).decode("utf-8"), media_type, username)
-        return base64_media
 
 def save_cached_id(cached_ids):
     with open(settings.get('cached_ids_path'), "w+") as file:
@@ -106,7 +99,6 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
     """
 
     tot_count_img, tot_count_videos = 0, 0
-    base64_media = []
 
     userid_endpoint = "https://i.instagram.com/api/v1/feed/user/{}/reel_media/"
     for idx, ids in enumerate(arr_ids):
@@ -170,7 +162,6 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
                         videos = element['video_versions']
                         video_url = videos[0]['url']
                         logger.debug("Video URL: {}".format(video_url))
-                        base64_media.append(get_media(video_url, fn_video, "video/mp4", username))
                         user_count_i += 1
                     else:
                         logger.debug("Video media already saved")
@@ -181,7 +172,6 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
                         pics = element['image_versions2']['candidates']
                         pic_url = pics[0]['url']
                         logger.debug("Photo URL: {}".format(pic_url))
-                        base64_media.append(get_media(pic_url, fn_img, "img/png", username))
                         user_count_v += 1
                     else:
                         logger.debug("Video media already saved")
@@ -200,7 +190,7 @@ def download_today_stories(arr_ids, cookie, folder_path, mode_flag):
                     seen.write(f'{id}\n')
                 json_stories_saved = json.dump(json_stories_saved, saved)
     logger.info("We finished processing {} users, we downloaded {} IMGs and {} VIDEOs".format(len(arr_ids), tot_count_img, tot_count_videos))
-    return tot_count_img, tot_count_videos, base64_media
+    return tot_count_img, tot_count_videos
 
 def get_stories_tray(cookie):
     """
@@ -273,7 +263,7 @@ def start_scrape(scrape_settings, folder_path, number_of_persons, mode_flag="all
     ids = get_ids(stories_ids, number_of_persons, extra_ids, ids_mode)
 
     logger.info(f"Starting scraping in mode: {mode_flag}, ids source: {ids_mode}")
-    count_i, count_v, base64_media = download_today_stories(ids, cookie, folder_path, mode_flag)
+    count_i, count_v = download_today_stories(ids, cookie, folder_path, mode_flag)
     logger.info("Finished scraping")
 
     timestampStr = datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)")
@@ -281,5 +271,3 @@ def start_scrape(scrape_settings, folder_path, number_of_persons, mode_flag="all
     with open("run_history.log", "a+") as o:
         scraped_users = len(ids)
         o.write(f"Date: {timestampStr} - {scraped_users} people scraped - {count_i} IMGs - {count_v} VIDEOs \n")
-
-    return base64_media
