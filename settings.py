@@ -7,6 +7,7 @@ SETTINGS_FILE_PATH = 'settings.json'
 SCRAPING_LOG_FILE_PATH = 'run_history.log'
 CACHED_IDS_PATH = 'cached_ids.json'
 LOG_FILE_PATH = 'info.log'
+LOGGING_DEBUG = True
 
 DEFAULT_VALUES = {
     'scraping_log_file_path': SCRAPING_LOG_FILE_PATH,
@@ -53,8 +54,17 @@ def update(setting_name, updated_value):
     settings[setting_name] = updated_value
     update_settings_file(settings)
 
-def setup_logger():
+def setup_logger(module):
+
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
-    logging.basicConfig(filename=LOG_FILE_PATH, level=logging.INFO, 
+    logging.basicConfig(filename=LOG_FILE_PATH, level=logging.INFO,
                         format='%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+    logger = logging.getLogger(module)
+    if LOGGING_DEBUG and not logger.handlers:
+        sh = logging.StreamHandler()
+        sh.setLevel(logging.DEBUG)
+        logger.addHandler(sh)
+
+    return logger

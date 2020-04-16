@@ -4,15 +4,13 @@ import os
 import base64
 import shutil
 import settings
-import logging
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 SKIP_EXTENSIONS = (".json", ".txt")
 
-settings.setup_logger()
-logger = logging.getLogger(__name__)
+logger = settings.setup_logger("flask_server.py")
 
 ################### UTIL FUNCTIONS ###################
 

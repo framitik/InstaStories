@@ -6,9 +6,7 @@ import settings
 import getpass
 import logging
 
-
-settings.setup_logger()
-logger = logging.getLogger(__name__)
+logger = settings.setup_logger("runner.py")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TOKEN PATH AND NUMBER OF PEOPLE SCRAPED")

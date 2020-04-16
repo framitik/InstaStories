@@ -5,7 +5,6 @@ import os
 import time
 import datetime
 import settings
-import logging
 from random import randint
 
 try:
@@ -14,7 +13,7 @@ try:
 except ImportError as e:
     PRINT_TABLE = False
 
-logger = logging.getLogger(__name__)
+logger = settings.setup_logger("instastories.py")
 
 ################# UTILS FUNCTIONS #########################
 
