@@ -1,5 +1,6 @@
 from Instastories import start_scrape
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, jsonify, request, redirect
+from flask_restful import Resource, Api
 import os
 import base64
 import shutil
@@ -8,7 +9,9 @@ import logging
 from thread_runner import ThreadRunner
 
 app = Flask(__name__)
+api = Api(app)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['DEBUG'] = True
 
 SKIP_EXTENSIONS = (".json", ".txt")
 
@@ -33,25 +36,19 @@ def get_folders(path, url):
     for folder in os.listdir(path):
         if folder.endswith(SKIP_EXTENSIONS): continue
         rendered_folders.append({'type': 'folder',
-                                 'url': f"{url}{folder}",
                                  'name': f"{folder}"})
-    return rendered_folders
+    return {"folders": rendered_folders}
 
 def get_media(path):
     to_render_media = []
     for media in os.listdir(path):
         if media.endswith(SKIP_EXTENSIONS): continue
         media_type = "img/png" if media.endswith(".jpg") else "video/mp4"
-        content_tag = "img" if media_type == "img/png" else "video controls"
+        content_tag = "img" if media_type == "img/png" else "video"
         with open(os.path.join(path, media), "rb") as media_element:
             base64_media = base64.b64encode(media_element.read()).decode("utf-8")
         to_render_media.append({'type': 'media', 'content_tag': content_tag, 'media_type': media_type, 'data': base64_media})
-    return to_render_media
-
-def get_stats_from_log_line(log_lines):
-    _, users_count, img_count, video_count = log_lines[-1].split(" - ")
-    count_u, count_i, count_v = [int(val.strip().split(" ")[0]) for val in [users_count, img_count, video_count]]
-    return count_u, count_i, count_v
+    return {"media": to_render_media}
 
 ################### ROUTES ###################
 
@@ -71,6 +68,7 @@ def index(loop_mode, media_mode, ids_source):
         elif status_button == "stop": scraper_runner.stopFunction()
         elif status_button == "update": scraper_runner.updateFuncArg(**scraper_runner_args)
     logged_in_error = request.method == "POST" and not is_user_logged_in
+
     log_lines = get_log_file_list()
     return render_template('index.html',
                            log_lines=log_lines,
@@ -133,18 +131,28 @@ def delete_media_folder_if_present():
 @app.route("/gallery/<username>/<date>/", methods=['GET'])
 def gallery(username, date):
     logger.info(f"GET request to /gallery/{username if username else ''}{'/' + date if date else ''}")
-    folder_path = settings.get("folder_path")
-    # From most to least specific
-    if date:
-        date_path = os.path.join(os.path.join(folder_path, username), date)
-        to_render_items = get_media(date_path)
-    elif username:
-        user_path = os.path.join(folder_path, username)
-        to_render_items = get_folders(user_path, request.url)
-    else:
-        to_render_items = get_folders(folder_path, request.url)
-    return render_template("gallery.html", to_render_items=to_render_items)
+    return render_template("gallery.html")
 
+################### API ###################
+
+class GetMedia(Resource):
+    def get(self):
+        user = request.args.get('user')
+        date = request.args.get('date')
+        folder_path = settings.get("folder_path")
+        # From most to least specific
+        if date:
+            date_path = os.path.join(os.path.join(folder_path, user), date)
+            to_render_items = get_media(date_path)
+        elif user:
+            user_path = os.path.join(folder_path, user)
+            to_render_items = get_folders(user_path, request.url)
+        else:
+            to_render_items = get_folders(folder_path, request.url)
+        return jsonify(to_render_items)
+
+
+api.add_resource(GetMedia, '/api/media/')
 ################### RUN ###################
 
 

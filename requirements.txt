@@ -2,3 +2,4 @@ flask
 requests
 terminaltables
 python-telegram-bot
+flask-restful
