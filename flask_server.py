@@ -61,7 +61,7 @@ def get_system_logs():
     log_file_path = settings.get('system_log_file_path')
     if not os.path.exists(log_file_path): return []
     with open(log_file_path, 'r+') as log_file:
-        return [log for log in log_file.readlines()]
+        return list(reversed([log for log in log_file.readlines()]))
 
 def get_scraper_status():
     return {
@@ -98,7 +98,8 @@ def settings_page():
 @app.route("/gallery/<path:text>", methods=['GET'])
 def gallery(text):
     logger.info(f"GET request to /gallery/")
-    return render_template("gallery.html", title=text if text else "Gallery")
+    title = f"Gallery/{text}"
+    return render_template("gallery.html", title=title if text else "Gallery")
 
 @app.route("/logs/", methods=['GET'])
 def logs():
