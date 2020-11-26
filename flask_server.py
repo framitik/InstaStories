@@ -25,7 +25,7 @@ def get_log_file_list():
         return []
     with open(scraping_logs_path, "r+") as o:
         logs = [log_lines for log_lines in o.readlines()]
-        return list(reversed(logs))
+        return logs[::-1]
 
 def get_folders(path):
     rendered_folders = []  # List of {type: 'folder', name: Y}
@@ -61,7 +61,7 @@ def get_system_logs():
     log_file_path = settings.get('system_log_file_path')
     if not os.path.exists(log_file_path): return []
     with open(log_file_path, 'r+') as log_file:
-        return list(reversed([log for log in log_file.readlines()]))
+        return [log for log in log_file.readlines()[::-1]]
 
 def get_scraper_status():
     return {
@@ -98,8 +98,8 @@ def settings_page():
 @app.route("/gallery/<path:text>", methods=['GET'])
 def gallery(text):
     logger.info(f"GET request to /gallery/")
-    title = f"Gallery/{text}"
-    return render_template("gallery.html", title=title if text else "Gallery")
+    title = "Gallery" + (f"/{text}" if text else "")
+    return render_template("gallery.html", title=title)
 
 @app.route("/logs/", methods=['GET'])
 def logs():
