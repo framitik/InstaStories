@@ -72,6 +72,12 @@ ul {
     margin: 0;
 }
 
+.errors {
+  color: var(--red-complementary-color);
+  padding: 0 0 20px;
+  font-size: 12px;
+}
+
 /* Mobile devices */    
 
 .navbar {
@@ -171,7 +177,9 @@ ul {
 }
 
 .settings-row {
+  display: flex;
   width: 100%;
+  justify-content: center;
 }
 
 .scraper-setting {
@@ -336,11 +344,47 @@ ul {
   text-indent: 10px;
 }
 
-.textarea-input {
-  height: 200px;
-  width: 70vw;
-  padding: 5px;
-  resize: none;
+.extra-ids-text-input {
+  min-width: 120px;
+  width: 100%;
+  max-width: 250px;
+}
+
+.extra-ids-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.extra-id-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 5px;
+  width: min-content;
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 7px;
+  background-color: var(--yellow-complementary-color);
+  color: #000000;
+}
+
+.extra-id-name {
+  padding: 0 20px;
+  width: max-content;
+}
+
+.delete-extra-id {
+  cursor: pointer;
+}
+
+.delete-extra-id:hover {
+  font-size: 22px;
+  transition: 0.2s;
 }
 
 .logs-field {
@@ -374,6 +418,10 @@ ul {
     display: flex;
     flex-direction: row;
     justify-content: center;
+  }
+
+  .extra-ids-list {
+    flex-direction: row;
   }
 
 }
@@ -420,11 +468,6 @@ ul {
     font-size: 12px;
   }
 
-  .errors {
-    color: var(--red-complementary-color);
-    padding: 0 0 20px;
-  }
-
   .container {
     margin-left: var(--desktop-navbar-width);
   }
@@ -438,7 +481,6 @@ ul {
   }
 
   .settings-row {
-    display: flex;
     flex-direction: row;
   }
 

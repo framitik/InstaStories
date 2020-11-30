@@ -1,6 +1,8 @@
 const API_PREFIX = 'api';
 const baseUrl = window.location.origin;
 
+let extraIDs = [];
+
 const jsonToIdFields = new Map([
   ['session_id', 'session-id'],
   ['folder_path', 'folder-path'],
@@ -10,13 +12,41 @@ const jsonToIdFields = new Map([
 ]);
 const idToJsonFields = new Map(Array.from(jsonToIdFields, (a) => a.reverse()));
 
-// Splits a string of names/numbers into a list when it finds "," or "\n"
-const normalizeExtraIds = (extraIds) => {
-  if (!extraIds) {
-    return [];
-  };
+const displayUnsavedChanges = () => {
+  const errors = document.getElementById('errors');
+  errors.innerText = "Attention! Unsaved changes"
+};
 
-  return extraIds.split(/,|\n/).map((el) => (el.trim()));
+const deleteExtraID = (extraID) => {
+  extraIDs = extraIDs.filter((el) => (el !== extraID));
+  displayUnsavedChanges();
+  renderExtraIDs();
+};
+
+const addExtraID = () => {
+  const extraID = document.getElementById('new-extra-id').value;
+  if ((extraID.trim().length > 0)) {
+    extraIDs = [...extraIDs, extraID];
+    displayUnsavedChanges();
+    renderExtraIDs();
+  };
+};
+
+const renderExtraIDs = () => {
+  const root = document.getElementById('extra-ids');
+  const extraIDsNode = document.createElement('div');
+  extraIDsNode.classList.add('extra-ids-list');
+  extraIDs.forEach((el) => {
+    extraIDsNode.innerHTML += `
+            <div class="extra-id-container">
+              <div class="extra-id-name">
+                ${el}
+              </div>
+              <div class="delete-extra-id" onclick="deleteExtraID('${el}')">X</div>
+            </div>`;
+  });
+  root.innerHTML = '';
+  root.appendChild(extraIDsNode);
 };
 
 // Sets the placeholders and values in HTML
@@ -41,7 +71,8 @@ const fetchResponseToHtml = async (response) => {
       const elementField = document.getElementById(idField);
       if (elementField) {
         if (element === 'extra_ids') {
-          elementField.value = responseData[element];
+          extraIDs = [...responseData[element]];
+          renderExtraIDs();
         } else {
           elementField.placeholder = responseData[element];
         }
@@ -80,9 +111,10 @@ const updateSettings = async () => {
     idField = jsonToIdFields.get(field);
     settings[jsonField] = document.getElementById(idField).value || document.getElementById(idField).placeholder;
   });
-  settings['extra_ids'] = [...normalizeExtraIds(settings['extra_ids'])];
+  settings['extra_ids'] = [...extraIDs];
   await postUpdatedSettings(settings);
   getAndRenderSettingsPage();
+  location.reload();
 };
 
 const updateStatusBar = (res) => {
@@ -124,6 +156,7 @@ const setUpButtonsListeners = () => {
   const logoutBtn = document.getElementById('logoutBtn');
   const deleteMediaBtn = document.getElementById('deleteMediaBtn');
   const submitBtn = document.getElementById('submitBtn');
+  const addExtraIDBtn = document.getElementById('add-extra-id');
 
   logoutBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to logout?')) {
@@ -139,6 +172,10 @@ const setUpButtonsListeners = () => {
 
   submitBtn.addEventListener('click', () => {
     updateSettings();
+  });
+
+  addExtraIDBtn.addEventListener('click', () => {
+    addExtraID();
   });
 };
 

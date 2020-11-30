@@ -33,8 +33,13 @@
             </div>
     
             <div class="setting-field">
-                <label class="setting-label" for="extra-ids">Extra nicknames/IDS to scrape</label>
-                <textarea class="text-input textarea-input" id="extra-ids"></textarea>
+                <label class="setting-label" for="add-extra-id">Extra nicknames/IDS to scrape</label>
+                <div class="errors" id="errors"></div>
+                <div class="settings-row">
+                    <input class="text-input extra-ids-text-input" type="text" id="new-extra-id"/>
+                    <button class="button" id="add-extra-id">Add extra ID</button>
+                </div>
+                <div id="extra-ids"></div>
             </div>
             <div class="setting-field" id="disk-usage"></div>
             <div class="setting-field buttons-field">
