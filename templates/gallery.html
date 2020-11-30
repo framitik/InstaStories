@@ -3,10 +3,11 @@
 
 {% block content %}
 <div class="container">
-    <p class="breadcrumb">{{ title }}</p>
+    <p class="breadcrumb" id="title">{{ title }}</p>
     <div class="content">
     <div id="summary"></div>
     <div class="gallery-container" id="gallery"></div>
+
     <script type="text/javascript" src="{{ url_for('static', filename='js/gallery.js') }}"></script>
     </div>
 </div>
