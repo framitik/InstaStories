@@ -12,24 +12,26 @@ const jsonToIdFields = new Map([
 ]);
 const idToJsonFields = new Map(Array.from(jsonToIdFields, (a) => a.reverse()));
 
-const displayUnsavedChanges = () => {
+const displayWarningUnsavedChanges = (isActive) => {
   const errors = document.getElementById('errors');
-  errors.innerText = 'Attention! Unsaved changes';
+  if (isActive) {
+    errors.innerText = 'Attention! Unsaved changes';
+  } else {
+    errors.innerText = '';
+  }
 };
 
 const deleteExtraID = (extraID) => {
-  if (extraIDs.has(extraID)) {
-    extraIDs.delete(extraID);
-  }
-  displayUnsavedChanges();
-  renderExtraIDs();
+  if (extraIDs.delete(extraID)) {
+    displayWarningUnsavedChanges(true);
+    renderExtraIDs();
+  };
 };
 
-const addExtraID = () => {
-  const extraID = document.getElementById('new-extra-id').value;
-  if ((extraID.trim().length > 0)) {
+const addExtraID = (extraID) => {
+  if ((extraID.trim().length > 0) && !extraIDs.has(extraID)) {
     extraIDs.add(extraID);
-    displayUnsavedChanges();
+    displayWarningUnsavedChanges(true);
     renderExtraIDs();
   };
 };
@@ -37,6 +39,7 @@ const addExtraID = () => {
 const renderExtraIDs = () => {
   const root = document.getElementById('extra-ids');
   const extraIDsNode = document.createElement('div');
+  root.innerHTML = '';
   extraIDsNode.classList.add('extra-ids-list');
   extraIDs.forEach((id) => {
     extraIDsNode.innerHTML += `
@@ -47,7 +50,6 @@ const renderExtraIDs = () => {
               <div class="delete-extra-id" onclick="deleteExtraID('${id}')">X</div>
             </div>`;
   });
-  root.innerHTML = '';
   root.appendChild(extraIDsNode);
 };
 
@@ -116,7 +118,7 @@ const updateSettings = async () => {
   settings['extra_ids'] = Array.from(extraIDs);
   await postUpdatedSettings(settings);
   getAndRenderSettingsPage();
-  location.reload();
+  displayWarningUnsavedChanges(false);
 };
 
 const updateStatusBar = (res) => {
@@ -177,7 +179,8 @@ const setUpButtonsListeners = () => {
   });
 
   addExtraIDBtn.addEventListener('click', () => {
-    addExtraID();
+    const extraID = document.getElementById('new-extra-id').value;
+    addExtraID(extraID);
   });
 };
 
