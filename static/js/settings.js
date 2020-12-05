@@ -1,7 +1,7 @@
 const API_PREFIX = 'api';
 const baseUrl = window.location.origin;
 
-let extraIDs = [];
+const extraIDs = new Set();
 
 const jsonToIdFields = new Map([
   ['session_id', 'session-id'],
@@ -14,11 +14,13 @@ const idToJsonFields = new Map(Array.from(jsonToIdFields, (a) => a.reverse()));
 
 const displayUnsavedChanges = () => {
   const errors = document.getElementById('errors');
-  errors.innerText = "Attention! Unsaved changes"
+  errors.innerText = 'Attention! Unsaved changes';
 };
 
 const deleteExtraID = (extraID) => {
-  extraIDs = extraIDs.filter((el) => (el !== extraID));
+  if (extraIDs.has(extraID)) {
+    extraIDs.delete(extraID);
+  }
   displayUnsavedChanges();
   renderExtraIDs();
 };
@@ -26,7 +28,7 @@ const deleteExtraID = (extraID) => {
 const addExtraID = () => {
   const extraID = document.getElementById('new-extra-id').value;
   if ((extraID.trim().length > 0)) {
-    extraIDs = [...extraIDs, extraID];
+    extraIDs.add(extraID);
     displayUnsavedChanges();
     renderExtraIDs();
   };
@@ -36,13 +38,13 @@ const renderExtraIDs = () => {
   const root = document.getElementById('extra-ids');
   const extraIDsNode = document.createElement('div');
   extraIDsNode.classList.add('extra-ids-list');
-  extraIDs.forEach((el) => {
+  extraIDs.forEach((id) => {
     extraIDsNode.innerHTML += `
             <div class="extra-id-container">
               <div class="extra-id-name">
-                ${el}
+                ${id}
               </div>
-              <div class="delete-extra-id" onclick="deleteExtraID('${el}')">X</div>
+              <div class="delete-extra-id" onclick="deleteExtraID('${id}')">X</div>
             </div>`;
   });
   root.innerHTML = '';
@@ -71,7 +73,7 @@ const fetchResponseToHtml = async (response) => {
       const elementField = document.getElementById(idField);
       if (elementField) {
         if (element === 'extra_ids') {
-          extraIDs = [...responseData[element]];
+          responseData[element].forEach((id) => extraIDs.add(id));
           renderExtraIDs();
         } else {
           elementField.placeholder = responseData[element];
@@ -111,7 +113,7 @@ const updateSettings = async () => {
     idField = jsonToIdFields.get(field);
     settings[jsonField] = document.getElementById(idField).value || document.getElementById(idField).placeholder;
   });
-  settings['extra_ids'] = [...extraIDs];
+  settings['extra_ids'] = Array.from(extraIDs);
   await postUpdatedSettings(settings);
   getAndRenderSettingsPage();
   location.reload();
