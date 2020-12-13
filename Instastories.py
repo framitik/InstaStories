@@ -285,8 +285,14 @@ def nick_to_id(nickname):
     Returns:
         ids (number): Id
     """
+    try:
+        cookie = settings.get('session_id')
+    except Exception as e:
+        logger.info("Can't find session id, make sure you're logged in")
+        return
+
     BASE_URL_PROFILE_INFO = "https://www.instagram.com/{}/?__a=1"
-    r = requests.get(BASE_URL_PROFILE_INFO.format(nickname))
+    r = requests.get(BASE_URL_PROFILE_INFO.format(nickname), headers=craft_cookie(cookie))
     if r.status_code != 404:
         d = r.json()
         logger.info("{} - ID: {}".format(nickname, d["graphql"]["user"]["id"]))
