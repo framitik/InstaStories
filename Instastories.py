@@ -285,9 +285,10 @@ def nick_to_id(nickname):
     Returns:
         ids (number): Id
     """
-    try:
-        cookie = settings.get('session_id')
-    except Exception as e:
+    user_settings = settings.get()
+    if "session_id" in user_settings:
+        cookie = user_settings["session_id"]
+    else:
         logger.info("Can't find session id, make sure you're logged in")
         return
 
