@@ -290,14 +290,11 @@ def nick_to_id(nickname):
     Args:
         usr_list (string): Username.
     Returns:
-        ids (number): Id
+        ids (number): Id if nickname is valid, else return none
     """
     user_settings = settings.get()
-    if "session_id" in user_settings:
-        cookie = user_settings["session_id"]
-    else:
-        logger.info("Can't find session id, make sure you're logged in")
-        return
+    cookie = user_settings["session_id"]
+
 
     BASE_URL_PROFILE_INFO = "https://www.instagram.com/{}/?__a=1"
     r = requests.get(BASE_URL_PROFILE_INFO.format(nickname), headers=craft_cookie(cookie))
@@ -309,8 +306,9 @@ def nick_to_id(nickname):
 
 #################### START SCRAPING FUNCTIONS ###################
 
-def start_scrape(scrape_settings, user_limit, media_mode="all", ids_source="all"):
-    cookie = craft_cookie(scrape_settings["session_id"])  # The check logic for the existence of "session_id" is on the runner.py and flask_server.py files
+def start_scrape(user_limit, media_mode="all", ids_source="all"):
+    scrape_settings = settings.get()
+    cookie = craft_cookie(scrape_settings["session_id"])  # The check logic for the existence of "session_id" is in flask_server.py file
     folder_path = scrape_settings["media_folder_path"]
 
     stories_ids = []
@@ -323,11 +321,11 @@ def start_scrape(scrape_settings, user_limit, media_mode="all", ids_source="all"
 
     logger.info(f"Starting scraping in mode: {media_mode}, ids source: {ids_source}")
     for processed_users, scraped_images, scraped_videos in download_stories(ids, cookie, folder_path, media_mode):
-        yield  {"done": False, 
-                "user_processed_so_far": processed_users,
-                "total_user_to_process": len(ids), 
-                "tot_scraped_images": scraped_images,
-                "tot_scraped_videos": scraped_videos}
+        yield {"done": False,
+               "user_processed_so_far": processed_users,
+               "total_user_to_process": len(ids),
+               "tot_scraped_images": scraped_images,
+               "tot_scraped_videos": scraped_videos}
         count_i, count_v = scraped_images, scraped_videos
     logger.info("Finished scraping")
     settings.completed_scraping()   # Send the signal that the scraping process finished. Used to flush Telegram logging.
@@ -338,9 +336,9 @@ def start_scrape(scrape_settings, user_limit, media_mode="all", ids_source="all"
         scraped_users = len(ids)
         o.write(f"Date: {timestampStr} - {scraped_users} people scraped - {count_i} IMGs - {count_v} VIDEOs \n")
 
-    yield {"done": True, 
-            "user_processed_so_far": len(ids),
-            "total_user_to_process": len(ids), 
-            "scraped_images": count_i,
-            "scraped_videos": count_v}
+    yield {"done": True,
+           "user_processed_so_far": len(ids),
+           "total_user_to_process": len(ids),
+           "scraped_images": count_i,
+           "scraped_videos": count_v}
     return None

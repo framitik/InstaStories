@@ -125,7 +125,6 @@ def running_status():
         if res['command'] == "start":
             scraping_args = res['scraping_args']
             loop_mode = res['loop_mode'] == 'true'
-            scraping_args['scrape_settings'] = user_settings
             scraper_runner.updateFuncArg(**scraping_args).startFunction(keep_running=loop_mode)
         else:
             scraper_runner.stopFunction()

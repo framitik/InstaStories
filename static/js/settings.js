@@ -130,7 +130,7 @@ const updateStatusBar = (res) => {
     statusBar.innerText = '';
   };
 
-  setTimeout(() => hideStatusBar(statusBar), 5000);
+  setTimeout(() => hideStatusBar(statusBar), 2000);
 };
 
 const postUpdatedSettings = async (payload) => { // POSTs the request for updating settings

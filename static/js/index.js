@@ -49,7 +49,7 @@ const updatePageFromStatusOutput = async () => {
       setTimeout(updatePage, CHECK_STATUS_EVERY_MS);
     }
   };
-  setTimeout(updatePage, CHECK_STATUS_EVERY_MS);
+  updatePage();
 };
 
 const updateCommandButton = (buttonStatus) => {
