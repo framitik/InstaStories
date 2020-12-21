@@ -61,11 +61,11 @@ def normalize_extra_ids(ids):
             if id_of_nick:
                 cached_ids_to_nick[id_of_nick] = nick
                 nicks_to_ids[nick] = id_of_nick
-        if nick in nicks_to_ids: converted_nicknames.append(nicks_to_ids[nick])
+        if nick in nicks_to_ids: converted_nicknames.append(int(nicks_to_ids[nick]))
     save_cached_ids_to_nick(cached_ids_to_nick)
     return numeric_ids + converted_nicknames
 
-def get_ids(stories_ids, user_limit, extra_ids, ids_mode):
+def get_ids(stories_ids, user_limit, extra_ids, ids_mode, blacklisted_ids):
     """
     Handle logic for picking the ids to process.
     Args:
@@ -76,6 +76,10 @@ def get_ids(stories_ids, user_limit, extra_ids, ids_mode):
     """
     ids = (stories_ids[:user_limit] if ids_mode != "extra_ids_only" else []) + \
           (extra_ids if ids_mode != "stories_ids_only" else [])
+
+    for id in blacklisted_ids:
+        if id in ids:
+            ids.remove(int(id))
     return list(dict.fromkeys(ids))  # Remove duplicates ids.
 
 ############################## TIME UTILS ######################################
@@ -317,7 +321,12 @@ def start_scrape(user_limit, media_mode="all", ids_source="all"):
         stories_ids = tray_to_ids(stories)
         if user_limit <= 0: user_limit = len(stories_ids)
     extra_ids = normalize_extra_ids(scrape_settings["extra_ids"] if "extra_ids" in scrape_settings else [])
-    ids = get_ids(stories_ids, user_limit, extra_ids, ids_source)
+    blacklisted_ids = []
+    for nick in scrape_settings['blacklisted_ids']:
+        id_of_nick = nick_to_id(nick)
+        if id_of_nick:
+            blacklisted_ids.append(int(id_of_nick))
+    ids = get_ids(stories_ids, user_limit, extra_ids, ids_source, blacklisted_ids)
 
     logger.info(f"Starting scraping in mode: {media_mode}, ids source: {ids_source}")
     for processed_users, scraped_images, scraped_videos in download_stories(ids, cookie, folder_path, media_mode):

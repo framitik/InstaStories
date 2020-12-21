@@ -191,6 +191,7 @@ def get_settings_api():
         res = request.get_json()
         user_settings.update(res)
         settings.update_settings_file(user_settings)
+
         loop_args = {"loop_delay_seconds": int(user_settings["loop_delay_seconds"]),
                      "loop_variation_percentage": int(user_settings["loop_variation_percentage"])}
         scraper_runner.updateDelay(**loop_args)
