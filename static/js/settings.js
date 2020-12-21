@@ -2,6 +2,7 @@ const API_PREFIX = 'api';
 const baseUrl = window.location.origin;
 
 const extraIDs = new Set();
+const blacklistedIDs = new Set();
 
 const jsonToIdFields = new Map([
   ['session_id', 'session-id'],
@@ -9,6 +10,7 @@ const jsonToIdFields = new Map([
   ['loop_delay_seconds', 'loop-delay-seconds'],
   ['loop_variation_percentage', 'loop-variation-percentage'],
   ['extra_ids', 'extra-ids'],
+  ['blacklisted_ids', 'blacklisted-ids'],
 ]);
 const idToJsonFields = new Map(Array.from(jsonToIdFields, (a) => a.reverse()));
 
@@ -53,6 +55,38 @@ const renderExtraIDs = () => {
   root.appendChild(extraIDsNode);
 };
 
+const addBlacklistedID = (blacklistedID) => {
+  if ((blacklistedID.trim().length > 0) && !blacklistedIDs.has(blacklistedID)) {
+    blacklistedIDs.add(blacklistedID);
+    displayWarningUnsavedChanges(true);
+    renderBlacklistedIDs();
+  };
+};
+
+const deleteBlacklistedID = (blacklistedID) => {
+  if (blacklistedIDs.delete(blacklistedID)) {
+    displayWarningUnsavedChanges(true);
+    renderBlacklistedIDs();
+  };
+};
+
+const renderBlacklistedIDs = () => {
+  const root = document.getElementById('blacklisted-ids');
+  const blacklistedIDsNode = document.createElement('div');
+  root.innerHTML = '';
+  blacklistedIDsNode.classList.add('extra-ids-list');
+  blacklistedIDs.forEach((id) => {
+    blacklistedIDsNode.innerHTML += `
+            <div class="blacklisted-id-container">
+              <div class="extra-id-name">
+                ${id}
+              </div>
+              <div class="delete-extra-id" onclick="deleteBlacklistedID('${id}')">X</div>
+            </div>`;
+  });
+  root.appendChild(blacklistedIDsNode);
+};
+
 // Sets the placeholders and values in HTML
 const fetchResponseToHtml = async (response) => {
   if (response.status !== 200) {
@@ -77,6 +111,9 @@ const fetchResponseToHtml = async (response) => {
         if (element === 'extra_ids') {
           responseData[element].forEach((id) => extraIDs.add(id));
           renderExtraIDs();
+        } else if (element === 'blacklisted_ids') {
+          responseData[element].forEach((id) => blacklistedIDs.add(id));
+          renderBlacklistedIDs();
         } else {
           elementField.placeholder = responseData[element];
         }
@@ -116,6 +153,7 @@ const updateSettings = async () => {
     settings[jsonField] = document.getElementById(idField).value || document.getElementById(idField).placeholder;
   });
   settings['extra_ids'] = Array.from(extraIDs);
+  settings['blacklisted_ids'] = Array.from(blacklistedIDs);
   await postUpdatedSettings(settings);
   getAndRenderSettingsPage();
   displayWarningUnsavedChanges(false);
@@ -167,6 +205,7 @@ const setUpButtonsListeners = () => {
   const deleteMediaBtn = document.getElementById('deleteMediaBtn');
   const submitBtn = document.getElementById('submitBtn');
   const addExtraIDBtn = document.getElementById('add-extra-id');
+  const addBlacklistedIDBtn = document.getElementById('add-blacklisted-id');
 
   logoutBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to logout?')) {
@@ -187,6 +226,11 @@ const setUpButtonsListeners = () => {
   addExtraIDBtn.addEventListener('click', () => {
     const extraID = document.getElementById('new-extra-id').value;
     addExtraID(extraID);
+  });
+
+  addBlacklistedIDBtn.addEventListener('click', () => {
+    const blacklistedID = document.getElementById('blacklist-id').value;
+    addBlacklistedID(blacklistedID);
   });
 };
 
