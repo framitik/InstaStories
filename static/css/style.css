@@ -442,6 +442,11 @@ ul {
   color: var(--green-complementary-color);
 }
 
+.version {
+  width: max-content;
+  margin: auto 20px;
+}
+
 .logs-field {
   width: 90%;
   padding: 5px;
