@@ -23,20 +23,32 @@ const displayWarningUnsavedChanges = (isActive) => {
   }
 };
 
-const deleteExtraID = (extraID) => {
-  if (extraIDs.delete(extraID)) {
-    displayWarningUnsavedChanges(true);
-    renderExtraIDs();
-  };
-};
+const deleteID = (id, listType) => {
+  if (listType === 'extraIDs') {
+    var IDs = extraIDs;
+  } else if (listType === 'blacklistedIDs') {
+    var IDs = blacklistedIDs;
+  }
 
-const addExtraID = (extraID) => {
-  if ((extraID.trim().length > 0) && !extraIDs.has(extraID)) {
-    extraIDs.add(extraID);
+  if (IDs.delete(id)) {
     displayWarningUnsavedChanges(true);
-    renderExtraIDs();
-  };
-};
+    renderIDs(listType);
+  }
+}
+
+const addID = (id, listType) => {
+  if (listType === 'extraIDs') {
+    var IDs = extraIDs;
+  } else if (listType === 'blacklistedIDs') {
+    var IDs = blacklistedIDs;
+  }
+
+  if ((id.trim().length > 0) && (!IDs.has(id))) {
+    IDs.add(id);
+    displayWarningUnsavedChanges(true);
+    renderIDs(listType);
+  }
+}
 
 const renderExtraIDs = () => {
   const root = document.getElementById('extra-ids');
@@ -55,36 +67,31 @@ const renderExtraIDs = () => {
   root.appendChild(extraIDsNode);
 };
 
-const addBlacklistedID = (blacklistedID) => {
-  if ((blacklistedID.trim().length > 0) && !blacklistedIDs.has(blacklistedID)) {
-    blacklistedIDs.add(blacklistedID);
-    displayWarningUnsavedChanges(true);
-    renderBlacklistedIDs();
+const renderIDs = (listType) => {
+  if (listType === 'extraIDs') {
+    var IDs = extraIDs;
+    var nodeName = 'extra-ids';
+    var containerName = 'extra-id-container'
+  } else if (listType === 'blacklistedIDs') {
+    var IDs = blacklistedIDs;
+    var nodeName = 'blacklisted-ids';
+    var containerName = 'blacklisted-id-container'
   };
-};
 
-const deleteBlacklistedID = (blacklistedID) => {
-  if (blacklistedIDs.delete(blacklistedID)) {
-    displayWarningUnsavedChanges(true);
-    renderBlacklistedIDs();
-  };
-};
-
-const renderBlacklistedIDs = () => {
-  const root = document.getElementById('blacklisted-ids');
-  const blacklistedIDsNode = document.createElement('div');
+  const root = document.getElementById(nodeName);
+  const IDsNode = document.createElement('div');
   root.innerHTML = '';
-  blacklistedIDsNode.classList.add('extra-ids-list');
-  blacklistedIDs.forEach((id) => {
-    blacklistedIDsNode.innerHTML += `
-            <div class="blacklisted-id-container">
+  IDsNode.classList.add('extra-ids-list');
+  IDs.forEach((id) => {
+    IDsNode.innerHTML += `
+            <div class="${containerName}">
               <div class="extra-id-name">
                 ${id}
               </div>
-              <div class="delete-extra-id" onclick="deleteBlacklistedID('${id}')">X</div>
+              <div class="delete-extra-id" onclick="deleteID('${id}', '${listType}')">X</div>
             </div>`;
   });
-  root.appendChild(blacklistedIDsNode);
+  root.appendChild(IDsNode);
 };
 
 // Sets the placeholders and values in HTML
@@ -110,10 +117,10 @@ const fetchResponseToHtml = async (response) => {
       if (elementField) {
         if (element === 'extra_ids') {
           responseData[element].forEach((id) => extraIDs.add(id));
-          renderExtraIDs();
+          renderIDs('extraIDs');
         } else if (element === 'blacklisted_ids') {
           responseData[element].forEach((id) => blacklistedIDs.add(id));
-          renderBlacklistedIDs();
+          renderIDs('blacklistedIDs');
         } else {
           elementField.placeholder = responseData[element];
         }
@@ -160,6 +167,7 @@ const updateSettings = async () => {
 };
 
 const updateStatusBar = (res) => {
+  const HIDE_STATUS_AFTER_MS = 2000
   const statusBar = document.getElementById('status-bar');
   const statusText = res.status === 200 ? 'Success!' : 'Failure, please try again!';
   statusBar.innerText = statusText;
@@ -168,7 +176,7 @@ const updateStatusBar = (res) => {
     statusBar.innerText = '';
   };
 
-  setTimeout(() => hideStatusBar(statusBar), 2000);
+  setTimeout(() => hideStatusBar(statusBar), HIDE_STATUS_AFTER_MS);
 };
 
 const postUpdatedSettings = async (payload) => { // POSTs the request for updating settings
@@ -225,12 +233,12 @@ const setUpButtonsListeners = () => {
 
   addExtraIDBtn.addEventListener('click', () => {
     const extraID = document.getElementById('new-extra-id').value;
-    addExtraID(extraID);
+    addID(extraID, 'extraIDs');
   });
 
   addBlacklistedIDBtn.addEventListener('click', () => {
     const blacklistedID = document.getElementById('blacklist-id').value;
-    addBlacklistedID(blacklistedID);
+    addID(blacklistedID, 'blacklistedIDs');
   });
 };
 

@@ -65,7 +65,7 @@ def normalize_extra_ids(ids):
     save_cached_ids_to_nick(cached_ids_to_nick)
     return numeric_ids + converted_nicknames
 
-def get_ids(stories_ids, user_limit, extra_ids, ids_mode, blacklisted_ids):
+def get_ids(stories_ids, user_limit, ids_mode, extra_ids, blacklisted_ids):
     """
     Handle logic for picking the ids to process.
     Args:
@@ -77,9 +77,7 @@ def get_ids(stories_ids, user_limit, extra_ids, ids_mode, blacklisted_ids):
     ids = (stories_ids[:user_limit] if ids_mode != "extra_ids_only" else []) + \
           (extra_ids if ids_mode != "stories_ids_only" else [])
 
-    for id in blacklisted_ids:
-        if id in ids:
-            ids.remove(int(id))
+    ids = [id for id in ids if id not in blacklisted_ids]
     return list(dict.fromkeys(ids))  # Remove duplicates ids.
 
 ############################## TIME UTILS ######################################
@@ -294,7 +292,7 @@ def nick_to_id(nickname):
     Args:
         usr_list (string): Username.
     Returns:
-        ids (number): Id if nickname is valid, else return none
+        ids (number|None): Id if nickname is valid, else return none
     """
     user_settings = settings.get()
     cookie = user_settings["session_id"]
@@ -321,12 +319,8 @@ def start_scrape(user_limit, media_mode="all", ids_source="all"):
         stories_ids = tray_to_ids(stories)
         if user_limit <= 0: user_limit = len(stories_ids)
     extra_ids = normalize_extra_ids(scrape_settings["extra_ids"] if "extra_ids" in scrape_settings else [])
-    blacklisted_ids = []
-    for nick in scrape_settings['blacklisted_ids']:
-        id_of_nick = nick_to_id(nick)
-        if id_of_nick:
-            blacklisted_ids.append(int(id_of_nick))
-    ids = get_ids(stories_ids, user_limit, extra_ids, ids_source, blacklisted_ids)
+    blacklisted_ids = normalize_extra_ids(scrape_settings['blacklisted_ids'])
+    ids = get_ids(stories_ids, user_limit, ids_source, extra_ids, blacklisted_ids)
 
     logger.info(f"Starting scraping in mode: {media_mode}, ids source: {ids_source}")
     for processed_users, scraped_images, scraped_videos in download_stories(ids, cookie, folder_path, media_mode):
