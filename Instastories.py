@@ -43,7 +43,7 @@ def get_cached_ids_to_nick():
     with open(cache_ids_path, "r") as file:
         return json.load(file)
 
-def normalize_extra_ids(ids):
+def normalize_ids(ids):
     """
     Given a list of string, containing both nicknames and ids it normalize them to a list of ids.
     The conversion from a nickname to an id make an IG request, but it's cached for future usage.
@@ -318,8 +318,8 @@ def start_scrape(user_limit, media_mode="all", ids_source="all"):
         stories = get_stories_tray(cookie)
         stories_ids = tray_to_ids(stories)
         if user_limit <= 0: user_limit = len(stories_ids)
-    extra_ids = normalize_extra_ids(scrape_settings["extra_ids"] if "extra_ids" in scrape_settings else [])
-    blacklisted_ids = normalize_extra_ids(scrape_settings['blacklisted_ids'])
+    extra_ids = normalize_ids(scrape_settings["extra_ids"] if "extra_ids" in scrape_settings else [])
+    blacklisted_ids = normalize_ids(scrape_settings['blacklisted_ids'])
     ids = get_ids(stories_ids, user_limit, ids_source, extra_ids, blacklisted_ids)
 
     logger.info(f"Starting scraping in mode: {media_mode}, ids source: {ids_source}")

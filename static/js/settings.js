@@ -24,11 +24,8 @@ const displayWarningUnsavedChanges = (isActive) => {
 };
 
 const deleteID = (id, listType) => {
-  if (listType === 'extraIDs') {
-    var IDs = extraIDs;
-  } else if (listType === 'blacklistedIDs') {
-    var IDs = blacklistedIDs;
-  }
+  var IDs = ''
+  listType === 'extraIDs' ?  IDs = extraIDs : IDs = blacklistedIDs;
 
   if (IDs.delete(id)) {
     displayWarningUnsavedChanges(true);
@@ -37,11 +34,8 @@ const deleteID = (id, listType) => {
 }
 
 const addID = (id, listType) => {
-  if (listType === 'extraIDs') {
-    var IDs = extraIDs;
-  } else if (listType === 'blacklistedIDs') {
-    var IDs = blacklistedIDs;
-  }
+  var IDs = ''
+  listType === 'extraIDs' ?  IDs = extraIDs : IDs = blacklistedIDs;
 
   if ((id.trim().length > 0) && (!IDs.has(id))) {
     IDs.add(id);
