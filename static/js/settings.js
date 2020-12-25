@@ -24,50 +24,33 @@ const displayWarningUnsavedChanges = (isActive) => {
 };
 
 const deleteID = (id, listType) => {
-  var IDs = listType == 'extraIDs' ? extraIDs : blacklistedIDs
+  const IDs = (listType == 'extraIDs') ? extraIDs : blacklistedIDs;
 
   if (IDs.delete(id)) {
     displayWarningUnsavedChanges(true);
     renderIDs(listType);
   }
-}
+};
 
 const addID = (id, listType) => {
-  var IDs = listType == 'extraIDs' ? extraIDs : blacklistedIDs
+  const IDs = (listType == 'extraIDs') ? extraIDs : blacklistedIDs;
 
   if ((id.trim().length > 0) && (!IDs.has(id))) {
     IDs.add(id);
     displayWarningUnsavedChanges(true);
     renderIDs(listType);
   }
-}
-
-const renderExtraIDs = () => {
-  const root = document.getElementById('extra-ids');
-  const extraIDsNode = document.createElement('div');
-  root.innerHTML = '';
-  extraIDsNode.classList.add('extra-ids-list');
-  extraIDs.forEach((id) => {
-    extraIDsNode.innerHTML += `
-            <div class="extra-id-container">
-              <div class="extra-id-name">
-                ${id}
-              </div>
-              <div class="delete-extra-id" onclick="deleteExtraID('${id}')">X</div>
-            </div>`;
-  });
-  root.appendChild(extraIDsNode);
 };
 
 const renderIDs = (listType) => {
   if (listType === 'extraIDs') {
     var IDs = extraIDs;
     var nodeName = 'extra-ids';
-    var containerName = 'extra-id-container'
+    var containerName = 'extra-id-container';
   } else if (listType === 'blacklistedIDs') {
     var IDs = blacklistedIDs;
     var nodeName = 'blacklisted-ids';
-    var containerName = 'blacklisted-id-container'
+    var containerName = 'blacklisted-id-container';
   };
 
   const root = document.getElementById(nodeName);
@@ -159,7 +142,7 @@ const updateSettings = async () => {
 };
 
 const updateStatusBar = (res) => {
-  const HIDE_STATUS_AFTER_MS = 2000
+  const HIDE_STATUS_AFTER_MS = 2000;
   const statusBar = document.getElementById('status-bar');
   const statusText = res.status === 200 ? 'Success!' : 'Failure, please try again!';
   statusBar.innerText = statusText;
