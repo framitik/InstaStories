@@ -24,8 +24,7 @@ const displayWarningUnsavedChanges = (isActive) => {
 };
 
 const deleteID = (id, listType) => {
-  var IDs = ''
-  listType === 'extraIDs' ?  IDs = extraIDs : IDs = blacklistedIDs;
+  var IDs = listType == 'extraIDs' ? extraIDs : blacklistedIDs
 
   if (IDs.delete(id)) {
     displayWarningUnsavedChanges(true);
@@ -34,8 +33,7 @@ const deleteID = (id, listType) => {
 }
 
 const addID = (id, listType) => {
-  var IDs = ''
-  listType === 'extraIDs' ?  IDs = extraIDs : IDs = blacklistedIDs;
+  var IDs = listType == 'extraIDs' ? extraIDs : blacklistedIDs
 
   if ((id.trim().length > 0) && (!IDs.has(id))) {
     IDs.add(id);
